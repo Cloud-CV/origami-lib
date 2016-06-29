@@ -182,6 +182,42 @@ def sendTextArray(data):
         if (e.__class__.__name__ == 'ConnectionError'):
             raise Exception("cvfy [Error Code: 010] => Connection Error")
             
+def sendTextArrayToTerminal(data):
+    validateTOKEN(sys._getframe().f_code.co_name)
+    validate_socket_id(request)
+    if (isinstance(data, list) or isinstance(data, tuple)):
+        pass
+    else:
+        raise ValueError("cvfy [Error Code: 017] => sendTextArrayToTerminal can only accept an array or a tuple")
+    for element in data:
+        if (not isinstance(element, basestring if (sys.version_info[0] == 2) else str)):
+            raise ValueError("cvfy [Error Code: 006] => iterable is not composed of strings")
+    data = {
+        'socketId': request.form['socket-id'],
+        'terminalData': data
+    }
+    data = json.dumps(data)
+    try:
+        headers = {'Content-Type': 'application/json'}
+        if (CVFY_TARGET == 'local'):
+            url = 'http://' + TOKEN.split(':')[1] + ':' + TOKEN.split(':')[3] + CVFY_INJECTION_SUBPATH
+        elif (CVFY_TARGET == 'remote'):
+            url = 'http://' + TOKEN.split(':')[5] + ':' + TOKEN.split(':')[3] + CVFY_INJECTION_SUBPATH
+        r = requests.post(url, headers=headers, data=data)
+        if (r.status_code == 400):
+            raise Exception("cvfy [Error Code: 007] => 400: Bad Request - app server says malformed request")
+        elif (r.status_code == 500):
+            raise Exception("cvfy [Error Code: 008] => 500: Internal Server Error - app server cannot handle your request")
+        elif (r.status_code == 404):
+            raise Exception("cvfy [Error Code: 009] => 404: Not Found - app server cannot be found; {0} is unreachable".format(url))
+        elif (r.status_code == 200):
+            return (r.text)
+            
+    except Exception as e:
+        if (e.__class__.__name__ == 'ConnectionError'):
+            raise Exception("cvfy [Error Code: 010] => Connection Error")
+    
+            
 def sendImageArray(data, mode):
     validateTOKEN(sys._getframe().f_code.co_name)
     validate_socket_id(request)
