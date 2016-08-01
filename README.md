@@ -1,3 +1,5 @@
 # cvfy-lib
 
-TODO
+Installation
+
+pip install -r requirements.txt
