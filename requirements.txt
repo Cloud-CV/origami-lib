@@ -1,5 +1,5 @@
 flask
 flask-cors
 requests
-magic
+python-magic
 tornado
