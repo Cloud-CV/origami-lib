@@ -2,11 +2,14 @@ from flask import *
 from flask_cors import CORS, cross_origin
 import requests
 import subprocess
+import hashlib
 import random
 import base64
 import magic
 import cv2
 import sys
+import os
+import ast
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
@@ -99,7 +102,7 @@ def register(APP_TOKEN):
 ########################
 
 def transformToLocalPath(image_object_array):
-    path_to_use = '/tmp/{}/'.format(random.randint(1, 1000000))
+    path_to_use = '/tmp/{}/'.format(getUniqueCacheId())
     subprocess.Popen('mkdir -p {}'.format(path_to_use), shell=True).wait()
     array_of_paths_to_send_back = []
     for index, image_object in enumerate(image_object_array):
@@ -110,8 +113,63 @@ def transformToLocalPath(image_object_array):
             extension = '.jpg'
         array_of_paths_to_send_back.append(path_to_use + str(index) + extension)
         with open(path_to_use + str(index) + extension, 'wb') as file:
+            image_object.seek(0)
             file.write(image_object.read())
+            image_object.seek(0)
     return (array_of_paths_to_send_back)
+
+def getUniqueCacheId():
+    md5_store = []
+    text_array = []
+    image_object_array = []
+    i = 0
+    try:
+        while True:
+            text_array.append(request.form['input-text-{}'.format(i)])
+            i += 1
+    except Exception as e:
+        pass
+    i = 0
+    try:
+        while True:
+            image_object_array.append(request.files['input-image-{}'.format(i)])
+            i += 1
+    except Exception as e:
+        pass
+    for text_input in text_array:
+        md5_store.append(hashlib.md5(text_input).hexdigest())
+    for image_object in image_object_array:
+        image_object.seek(0)        
+        md5_store.append(hashlib.md5(image_object.read()).hexdigest())
+        image_object.seek(0)        
+
+    return hashlib.md5(
+        reduce((lambda x, y: x + y), [
+            str(reduce(lambda x, y: ord(x) ^ ord(y) 
+            if isinstance(x, str) else x ^ ord(y), temp)) 
+            for temp in zip(*md5_store)
+            ])
+    ).hexdigest()
+
+def checkIfCachedResultsExist():
+    return os.path.exists('/tmp/{}/results'.format(getUniqueCacheId()))
+
+def loadTextArrayFromCache():
+    cache_id = getUniqueCacheId()
+    if os.path.exists('/tmp/{}/results/text.cache'.format(cache_id)):
+        file = open('/tmp/{}/results/text.cache'.format(cache_id), 'r')
+        content = file.read()
+        file.close()
+        return ast.literal_eval(content.strip())
+    else:
+        raise ValueError("cvfy [Error Code: 019] => text.cache does not exist")
+
+def saveTextArrayToCache(text_array):
+    cache_id = getUniqueCacheId()
+    subprocess.Popen('mkdir -p {}'.format('/tmp/{}/results/'.format(cache_id)), shell=True).wait()
+    with open('/tmp/{}/results/text.cache'.format(cache_id), 'w') as file:
+        text_array = ['"{}"'.format(x) for x in text_array]
+        file.write('[' + ', '.join(text_array) + ']')
 
 #####################
 ## input functions ##
@@ -140,8 +198,6 @@ def getImageArray():
     except Exception as e:
         pass
     return (transformToLocalPath(imagedata))
-
-
 
 ######################
 ## output functions ##
