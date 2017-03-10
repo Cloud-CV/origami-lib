@@ -6,10 +6,12 @@ import hashlib
 import random
 import base64
 import magic
+import shutil
 import cv2
 import sys
 import os
 import ast
+import glob
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
@@ -170,6 +172,40 @@ def saveTextArrayToCache(text_array):
     with open('/tmp/{}/results/text.cache'.format(cache_id), 'w') as file:
         text_array = ['"{}"'.format(x) for x in text_array]
         file.write('[' + ', '.join(text_array) + ']')
+
+def loadImageArrayFromCache():
+    cache_id = getUniqueCacheId()
+    if os.path.exists('/tmp/{}/results/images/'.format(cache_id)):
+        return glob.glob('/tmp/{}/results/images/*.*'.format(cache_id))
+    else:
+        raise ValueError("cvfy [Error Code: 020] => cached image results do not exist")
+
+def saveImageArrayToCache(data, mode):
+    cache_id = getUniqueCacheId()
+    subprocess.Popen('mkdir -p {}'.format('/tmp/{}/results/images'.format(cache_id)), shell=True).wait()
+    if (isinstance(data, list) or isinstance(data, tuple)):
+        pass
+    else:
+        raise ValueError("cvfy [Error Code: 021] => saveImageArrayToCache can only accept an array or a tuple")
+    tempdata = []
+    if (mode == 'file_path'):
+        try:
+            for index, file_path in enumerate(data):
+                file_extension = file_path.split('/')[-1].split('.')[-1]
+                shutil.copy2(file_path, '/tmp/{}/results/images/{}.{}'.format(cache_id, index, file_extension))
+        except Exception as e:
+            raise Exception("cvfy [Error Code: 021] => unable to cache image file - reason: {}".format(e))
+    elif (mode == 'numpy_array'):
+        image_base_path = '/tmp/{}/results/images/'.format(cache_id)
+        try:
+            for index, numpy_image_array in enumerate(data):
+                path = image_base_path + str(index) + '.png'
+                cv2.imwrite(path, numpy_image_array)
+        except Exception as e:
+            raise Exception("cvfy [Error Code: 022] => unable to write numpy array as image to cache - reason: {}".format(e))
+    else:
+        raise ValueError("cvfy [Error Code: 023] => invalid type value")
+
 
 #####################
 ## input functions ##
