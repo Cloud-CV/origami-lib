@@ -12,6 +12,8 @@ import sys
 import os
 import ast
 import glob
+import io
+import numpy as np
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
@@ -120,6 +122,17 @@ def transformToLocalPath(image_object_array):
             image_object.seek(0)
     return (array_of_paths_to_send_back)
 
+def transformToNumpyArrays(image_object_array):
+    numpy_arrays_to_send_back = []
+    for index, image_object in enumerate(image_object_array):
+        in_memory = io.BytesIO()
+        image_object.save(in_memory)
+        data = np.fromstring(in_memory.getvalue(), dtype=np.uint8)
+        color_image_flag = 1
+        img = cv2.imdecode(data, color_image_flag)
+        numpy_arrays_to_send_back.append(img)
+    return (numpy_arrays_to_send_back)
+
 def getUniqueCacheId():
     md5_store = []
     text_array = []
@@ -223,7 +236,7 @@ def getTextArray():
         pass
     return (textdata)
 
-def getImageArray():
+def getImageArray(mode='file_path'):
     validateTOKEN(sys._getframe().f_code.co_name)
     imagedata = []
     i = 0
@@ -233,7 +246,10 @@ def getImageArray():
             i += 1
     except Exception as e:
         pass
-    return (transformToLocalPath(imagedata))
+    if mode == 'file_path':
+        return (transformToLocalPath(imagedata))
+    elif mode == 'numpy_array':
+        return (transformToNumpyArrays(imagedata))
 
 ######################
 ## output functions ##
