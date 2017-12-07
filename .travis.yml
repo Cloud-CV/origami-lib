@@ -9,11 +9,13 @@ before_script:
   - pip install numpy
   - pip install opencv-python
   - pip install -r requirements.txt
-  - python origami-lib/test/server_textimageinput.py &
-  - sleep 1
+  - |
+    python origami-lib/test/server_textimageinput.py &
+    SERVER_PID=$!
 
 script:
   - cd origami-lib/test/
   - pytest
+  - kill -9 $SERVER_PID
 
 cache: pip
