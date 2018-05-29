@@ -1,5 +1,0 @@
-flask
-flask-cors
-requests
-python-magic
-tornado
