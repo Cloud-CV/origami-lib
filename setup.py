@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from setuptools import setup, find_packages
 
-PROJECT = "origami-lib"
+PROJECT = "origami"
 
 with open('README.md') as readme_file:
     README = readme_file.read()
@@ -11,7 +11,9 @@ install_requires = [
   'Flask-Cors==3.0.4',
   'requests==2.18.4',
   'python-magic==0.4.15',
-  'tornado==5.0.2'
+  'tornado==5.0.2',
+  'numpy==1.14.3',
+  'opencv-python==3.4.1.15',
 ]
 
 setup(
@@ -40,6 +42,4 @@ setup(
     'Intended Audience :: Developers',
     'Environment :: Console',
   ],
-
-  zip_safe=False,
 )
