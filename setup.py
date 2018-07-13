@@ -1,7 +1,8 @@
 #!/usr/bin/env python
+
 from setuptools import setup, find_packages
 
-PROJECT = "origami"
+PROJECT = "origami_lib"
 
 with open('README.md') as readme_file:
     README = readme_file.read()
@@ -29,7 +30,7 @@ setup(
   packages=find_packages(exclude=['tests']),
   include_package_data=True,
 
-  download_url='https://github.com/Cloud-CV/origami-lib/archive/0.1.tar.gz',
+  download_url='https://github.com/Cloud-CV/origami-lib',
 
   install_requires=install_requires,
   classifiers=[
@@ -38,8 +39,11 @@ setup(
     'Programming Language :: Python :: 2',
     'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.4',
+    'Programming Language :: Python :: 3.5',
+    'Programming Language :: Python :: 3.6',
     'Intended Audience :: Developers',
     'Environment :: Console',
   ],
+
+  zip_safe=False
 )

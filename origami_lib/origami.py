@@ -9,8 +9,8 @@ from tornado.web import Application, FallbackHandler
 from tornado.ioloop import IOLoop
 from tornado.websocket import WebSocketHandler
 
-from origami import constants, exceptions, utils
-from origami.pipeline import OrigamiCache
+from . import constants, exceptions, utils
+from .pipeline import OrigamiCache
 
 
 class OrigamiRequester(object):
@@ -55,7 +55,7 @@ class OrigamiRequester(object):
         except Exception as e:
             raise exceptions.RequesterNoTargetUrlException(
                 "No target url retriver function _get_origami_server_target_url\
-                found")
+                found : {}".format(e))
 
         # Request the origami server
         try:
@@ -65,7 +65,8 @@ class OrigamiRequester(object):
                 data=payload)
         except Exception as e:
             raise exceptions.OrigamiRequesterException(
-                "Connection error when requesting origami server")
+                "Connection error when requesting origami server : {}".format(
+                    e))
 
         # Check the response object
         if resp.status_code == 400:
@@ -158,7 +159,7 @@ class OrigamiInputs(object):
         except Exception as e:
             if not image_inputs:
                 raise exceptions.InvalidRequestParameterGet(
-                    "No valid input image fields in the request")
+                    "No valid input image fields in the request : {}".format(e))
 
         if mode == constants.INPUT_IMAGE_ARRAY_FILEPATH_MODE:
             cache = OrigamiCache()
@@ -369,8 +370,8 @@ class OrigamiOutputs(OrigamiRequester):
 
         else:
             raise exceptions.OutputHandlerException(
-                "Not a valid mode({0}) provided when encoding image for sending",
-                mode)
+                "Not a valid mode({0}) provided when encoding image \
+                for sending", mode)
 
         resp = self._origmai_send_data(image_arr,
                                        constants.DEFAULT_DATA_TYPE_KEY)
@@ -406,7 +407,8 @@ class _OrigamiWebSocketHandler(WebSocketHandler):
     """
     # A persistent connection mapping.
     # Static variable, a single copy for all the connection.
-    # TODO: Run a worker to regularly clean this global mapping, might get too bloated
+    # TODO: Run a worker to regularly clean this global mapping, might get too
+    # bloated
     persistent_conn_map = []
 
     def register_persistent_connection(self, func, args):
@@ -436,12 +438,17 @@ class _OrigamiWebSocketHandler(WebSocketHandler):
                 text_arr = app.send_text_array()
 
                 # Register a function here
-                # You can think this of like a python decorator wherein you are essentially
-                # enclosing a function inside other. So hello() is the function which will
-                # setup the environment for my_func which will be executed within the
+                # You can think this of like a python decorator wherein you are
+                # essentially
+                # enclosing a function inside other. So hello() is the function
+                # which will
+                # setup the environment for my_func which will be executed
+                # within the
                 # environment each time user makes a request using websockets.
-                # Args is the list of arguments you want to send for the function in the same
-                # order, they are what passed as the state of this connectino to the function.
+                # Args is the list of arguments you want to send for the
+                #  function in the same
+                # order, they are what passed as the state of this connectino t
+                # the function.
 
                 app.register_persistent_connection(my_func,
                     ["my argument", "secondArg"])
@@ -463,9 +470,10 @@ class _OrigamiWebSocketHandler(WebSocketHandler):
         """
         if not isinstance(args, list):
             raise exceptions.MismatchTypeException(
-                "register_persistent_connection only accepts arguments as a list"
-            )
-        # Only works for python2 and python3.2+, check if the function is callable
+                "register_persistent_connection only accepts \
+                arguments as a list")
+        # Only works for python2 and python3.2+, check if the function is
+        # callable
         if not callable(func):
             raise exceptions.MismatchTypeException(
                 "Non callable argument for function")
@@ -474,7 +482,8 @@ class _OrigamiWebSocketHandler(WebSocketHandler):
 
         if socketId:
             try:
-                # Try to check if a connection with the give socket-id already exist
+                # Try to check if a connection with the give socket-id already
+                # exist
                 dup_conn = next(
                     x for x in self.persistent_conn_map if x["id"] == socketId)
                 self.__clear_connection(dup_conn)
@@ -605,9 +614,9 @@ class _OrigamiWebSocketHandler(WebSocketHandler):
                     #     "ws_data", out_msg, socketId=self.connection_id)
                 else:
                     print(
-                        "A persistent connection can only return a python dict or string"
-                    )
-            except Exception as e:
+                        "A persistent connection can only return a python dict \
+                        or string")
+            except Exception:
                 pass
 
     def on_close(self):

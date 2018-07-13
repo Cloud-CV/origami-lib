@@ -7,7 +7,7 @@ import os
 import sys
 import uuid
 
-from origami import exceptions, constants
+from . import exceptions, constants
 
 
 def validate_token(token):
