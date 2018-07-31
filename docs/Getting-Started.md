@@ -16,7 +16,7 @@ with the Origami user interface.
 
 * Install origami lib using pip
 
-`pip install origami`
+`pip install origami_lib`
 
 ### Bootstraping your demo
 
@@ -50,7 +50,7 @@ So let's start bootstrapping this with origami.
 Before doing anything with your demo you need to first instantiate Origami application.
 
 ```python
-from origami import Origami
+from origami_lib import Origami
 
 app = Origami("my_demo")
 ```
@@ -84,7 +84,7 @@ After all code for the demo is writtern we run the app using `Origami.run()`. So
 with origami.
 
 ```python
-from origami import Origami
+from origami_lib import Origami
 
 app = Origami("my_demo")
 

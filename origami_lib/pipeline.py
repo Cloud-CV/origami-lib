@@ -21,6 +21,7 @@ class OrigamiCache(object):
     all of it in the memory.
 
     .. code-block:: python
+
         from origami import OrigamiCache
 
         cache = OrigamiCache()
@@ -30,11 +31,11 @@ class OrigamiCache(object):
         new_arr = cache.load_text_array_from_cache()
         print(new_arr)
 
-    Attributes:
-        global_cache_path: Path for all the file interaction for pipeline
-            functions
-        cache_id: ID for the current cache object
-        cache_dir: Cache dir corresponding to global_cache_path and cache_id
+    Attrs:
+        global_cache_path: Path for all the file interaction for pipeline \
+            functions.
+        cache_id: ID for the current cache object.
+        cache_dir: Cache dir corresponding to global_cache_path and cache_id.
     """
 
     def __init__(self, cache_path=constants.GLOBAL_CACHE_PATH):
@@ -52,7 +53,7 @@ class OrigamiCache(object):
             cache_id: Cache ID to reference the cache in future.
 
         Raises:
-            FileHandlingException: Exception during creating directory for the
+            FileHandlingException: Exception during creating directory for the \
                 cache.
         """
         self.cache_id = uuid.uuid4().hex
@@ -120,7 +121,7 @@ class OrigamiCache(object):
             file_path: Path of the file to parse.
 
         Raises:
-            MalformedCacheException: The cache file we are trying to parse is
+            MalformedCacheException: The cache file we are trying to parse is \
                 malformed.
             InvalidCachePathException: The path provided to read does not exist.
         """
@@ -158,14 +159,14 @@ class OrigamiCache(object):
         Load the text array from the cache file and return it.
 
         Returns:
-            eval_ds: Evaluated data structure from the text cache file, in this
-                case it corresponds to the text array.
+            text_arr (list): Evaluated data structure from the text cache file \
+                , in this case it corresponds to the text array.
 
         Raises:
-            MalformedCacheException: Exception during parsing the data strcutre
-                from text cache file.
+            MalformedCacheException: Exception during parsing the data \
+                structure from text cache file.
 
-            InvalidCachePathException: The path for cache we obtained is not
+            InvalidCachePathException: The path for cache we obtained is not \
                 present or there is nothing to load fro the cache path.
         """
         text_cache_path = os.path.join(self.cache_dir,
@@ -190,18 +191,18 @@ class OrigamiCache(object):
         a python list of blobs hash.
 
         Args:
-            image_objects_arr: An array of image object(should be checked before
-                here for type) which will be cached by creating blobs from the
-                file.
+            image_objects_arr: An array of image object(should be checked \
+                before here for type) which will be cached by creating blobs \
+                from the file.
 
         Returns:
-            image_blobs_hash: A python list containing the blobs hash which are
-                saved into the image cache directory.
+            image_blobs_hash: A python list containing the blobs hash which \
+                are saved into the image cache directory.
 
         Raises:
-            BlobCreationException: Each image_object is converted to blob to be
-                saved individually this exception is thrown when there is an
-                error during this process for any image object.
+            BlobCreationException: Each image_object is converted to blob to \
+                be saved individually this exception is thrown when there is \
+                an error during this process for any image object.
         """
         image_blobs_hash = []
         image_cache_dir = os.path.join(self.cache_dir,
@@ -238,8 +239,8 @@ class OrigamiCache(object):
             image_objects: list/tuple of images to be saved.
 
         Raises:
-            MismatchTypeException: Image objects in the argument should be a
-                python list or a tuple. THis is raised when this type is
+            MismatchTypeException: Image objects in the argument should be a \
+                python list or a tuple. THis is raised when this type is \
                 mismatched.
         """
         if not isinstance(image_objects, (list, tuple)):

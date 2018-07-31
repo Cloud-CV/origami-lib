@@ -1,20 +1,20 @@
 from tornado.testing import AsyncHTTPTestCase
 from tornado.web import Application
 
-from origami_lib.origami import _FunctionServiceHandler
+from origami_lib.origami import FunctionServiceHandler
 from origami_lib.exceptions import MismatchTypeException
 
 
-class _FunctionServiceHandlerTest(AsyncHTTPTestCase):
+class FunctionServiceHandlerTest(AsyncHTTPTestCase):
     def get_app(self):
-        app = Application([(r'/fass', _FunctionServiceHandler)])
+        app = Application([(r'/fass', FunctionServiceHandler)])
         return app
 
     def test_register_persistent_http_connection(self):
         def temp_func(arg, query=""):
             return arg + '::' + query
 
-        x = _FunctionServiceHandler
+        x = FunctionServiceHandler
         self.assertRaises(MismatchTypeException,
                           x.register_persistent_http_connection, temp_func,
                           "pass a list")

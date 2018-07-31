@@ -22,8 +22,8 @@ def validate_token(token):
         token: Token if validated else an exception is raised
 
     Raises:
-        MismatchTypeException: Error occurred when correct type of token is not
-             supplied.
+        MismatchTypeException: Error occurred when correct type of token is \
+             not supplied.
         InvaidTokenException: Raised when token to be validated is invalid
     """
     try:
@@ -54,12 +54,12 @@ def parse_target(token):
         token: Token to extract the target from
 
     Returns:
-        target: Target of the application
+        target: Target of the application \
             either gh or nongh.
 
     Raises:
-        InvalidTokenException: The token provided is invalid, it only checks it
-            corresponding to target
+        InvalidTokenException: The token provided is invalid, it only checks \
+            it corresponding to target
     """
     if (token.split(':')[0] == 'gh'):
         target = 'local'
@@ -82,7 +82,7 @@ def get_image_as_numpy_arr(image_files_arr):
         image_files_arr: Array of image files from user request
 
     Returns:
-        image_np_arr: Array of numpy image array corresponding to given
+        image_np_arr: Array of numpy image array corresponding to given \
             image files.
     """
     images_np_arr = []
@@ -124,7 +124,7 @@ def strict_check_array_of_string(data):
         data: Data to be validated corresponding to array of string
 
     Raises:
-        MismatchTypeException: Exception that the required type did not match
+        MismatchTypeException: Exception that the required type did not match \
             catch this to handle non array of strings.
     """
     if not isinstance(data, (list, tuple)):
@@ -148,7 +148,7 @@ def get_base64_image_from_file(file_path):
         src: base64 encoded image.
 
     Raises:
-        InvalidMimeTypeException: Image does not have a vaild mime type to
+        InvalidMimeTypeException: Image does not have a vaild mime type to \
             process.
         InvalidFilePathException: File trying to access is not found.
     """
@@ -183,7 +183,7 @@ def get_base64_image_from_nparr(image_nparr):
         image_src: base64 encoded image string
 
     Raises:
-        FileHandlingException: Error while handling file created to get base64
+        FileHandlingException: Error while handling file created to get base64 \
             encoded string from np array using cv2
     """
     try:
@@ -210,8 +210,8 @@ def validate_cache_path(cache_path):
         cache_path: Validated cache path as absolute path.
 
     Raises:
-        InvalidCachePathException: The provided cache path is not valid, either
-            due to the permissions or is not a directory at all.
+        InvalidCachePathException: The provided cache path is not valid, \
+            either due to the permissions or is not a directory at all.
     """
     if os.path.isdir(cache_path):
         cache_path = os.path.abspath(cache_path)

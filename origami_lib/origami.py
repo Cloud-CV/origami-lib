@@ -28,14 +28,18 @@ class OrigamiRequester(object):
         payload.
 
         Args:
-            payload: Python dict which is to be sent to the origami server
+            payload: Python dict which is to be sent to the origami server \
                 The format of the payload is:
-                payload = {
-                    "socketId": userSocketID,
-                    "[dataType]": data
-                }
 
-                where dataType can be one of the following.
+                .. code-block
+
+                    {
+                        "socketId": userSocketID,
+                        "[dataType]": data
+                    }
+
+
+                where dataType can be one of the following. \
                 data, terminalData
 
         Returns:
@@ -104,7 +108,7 @@ class OrigamiInputs(object):
             text_inputs: Input text array provided by user in the request.
 
         Raises:
-            InvalidRequestParameterGet: Not a valid parameter requested from
+            InvalidRequestParameterGet: Not a valid parameter requested from \
                 the users request to origami.
         """
         text_inputs = []
@@ -129,9 +133,9 @@ class OrigamiInputs(object):
         Extract image input from the request files.
         The two modes defines how the user wants the images
 
-        file_path: The file_path mode which is the default one makes use of
-            OrigamiCache. It creates a cache object and then store the images
-            into the cache. and returns this object
+        file_path: The file_path mode which is the default one makes use of \
+            OrigamiCache. It creates a cache object and then store the images \
+            into the cache and returns this object.
 
             User can then use this cache object to load images from the cache.
             The load function will return a list of file_paths which will each
@@ -139,18 +143,19 @@ class OrigamiInputs(object):
 
         Args:
             mode: mode in which you are expecting the result
-                file_path -> cache Image locally and return path
-                numpy_array -> processes the image and returns the numpy array
-                    corresponding to that.
+
+                * file_path -> cache Image locally and return path
+                * numpy_array -> processes the image and returns the numpy \
+                    array corresponding to that.
 
         Returns:
-            ImageArr: array of Images either in the numpy array format or
+            ImageArr: array of Images either in the numpy array format or \
                 the path of the image which is cached locally.
 
         Raises:
-            InputHandlerException: Exception that the input provided by user in
-                the request is not Valid, which is some image is expected and
-                none provided.
+            InputHandlerException: Exception that the input provided by user \
+                in the request is not Valid, which is some image is expected \
+                and none provided.
         """
         image_inputs = []
         i = 0
@@ -180,7 +185,7 @@ class OrigamiOutputs(OrigamiRequester):
     This class implements all the output functions for Origami.
 
     Attributes:
-        response: response variable storing response to be sent to client
+        response: response variable storing response to be sent to client \
             if API access is enabled using the provided decorator.
     """
     response = list(constants.DEFAULT_ORIGAMI_RESPONSE_TEMPLATE)
@@ -194,7 +199,7 @@ class OrigamiOutputs(OrigamiRequester):
         response string
 
         Returns:
-            response: string which was in self.response before clearing
+            response: string which was in self.response before clearing \
                 it up.
         """
         response = jsonify(self.response)
@@ -221,12 +226,12 @@ class OrigamiOutputs(OrigamiRequester):
         send user an API response at the end of the request.
 
         Args:
-            view_func: Function that this function wraps to make
+            view_func: Function that this function wraps to make \
                 things work.
 
         Returns:
-            Wrapper fuction that calls the view_func to do its work
-            and then returns the response back to user.
+            func: Wrapper fuction that calls the view_func to do its work \
+                and then returns the response back to user.
         """
 
         def _wrapper():
@@ -243,7 +248,7 @@ class OrigamiOutputs(OrigamiRequester):
 
         Args:
             data: list or tuple of string to be sent.
-            dataType: Key for data in payload python dict
+            dataType: Key for data in payload python dict \
                 can be either of `data` or `terminalData`
 
         Returns:
@@ -276,16 +281,16 @@ class OrigamiOutputs(OrigamiRequester):
 
         Args:
             data: list or tuple of string to be sent.
-            dataType: Key for data in payload python dict
+            dataType: Key for data in payload python dict \
                 can be either of data or terminalData
 
         Returns:
-            resp: Response text we got back from the origami server
-            corresponding to the request we made.
+            resp: Response text we got back from the origami server \
+                corresponding to the request we made.
 
         Raises:
-            MismatchTypeException: Type of the data provided to function is not
-                what we expected.
+            MismatchTypeException: Type of the data provided to function is \
+                not what we expected.
         """
 
         # TODO: make dataType more explicit here use different types for images
@@ -300,15 +305,15 @@ class OrigamiOutputs(OrigamiRequester):
         Send text data array to origami_server with the users socket ID
 
         Args:
-            data: list or tuple of list/tuple to be sent.
+            data (list, tuple): list or tuple of list/tuple to be sent.
 
         Returns:
-            resp: Response text we got back from the origami server
-            corresponding to the request we made.
+            resp: Response text we got back from the origami server \
+                corresponding to the request we made.
 
         Raises:
-            MismatchTypeException: Type of the data provided to function is not
-                what we expected.
+            MismatchTypeException: Type of the data provided to function is \
+                not what we expected.
         """
 
         if not isinstance(data, (list, tuple)):
@@ -328,7 +333,7 @@ class OrigamiOutputs(OrigamiRequester):
         as a terminal data.
 
         Args:
-            data: array/tuple of strings to be sent.
+            data (list, tuple): array/tuple of strings to be sent.
 
         Returns:
             resp: response got from sending the data.
@@ -343,8 +348,8 @@ class OrigamiOutputs(OrigamiRequester):
         Send image array as base64 encoded images list.
 
         Args:
-            data: list/tuple of either image path or numpy array
-            mode: mode in which to process the data
+            data (list, tuple): list/tuple of either image path or numpy array
+            mode (str): mode in which to process the data
 
         Returns:
             resp: response got from sending the data.
@@ -380,28 +385,30 @@ class OrigamiOutputs(OrigamiRequester):
         return resp
 
 
-class _OrigamiWebSocketHandler(WebSocketHandler):
+class OrigamiWebSocketHandler(WebSocketHandler):
     """
     Handles persistent websocket connections for Origami
 
     Attributes:
         persistent_conn_map:
-            This is a list of object containing information about each
+            This is a list of object containing information about each \
             registered persistent connection. The structure of the object is:
 
-            {
-                "id": socketId,
-                "func": func,
-                "arguments": args,
-                "timestamp": time.time()
-            }
+            .. code-block
 
-            ID: SocketID for registering user
-            func: routine to execute when the request from websocket is made
-            arguments: a list of arguments to be provided to func.
-            timestamp: Timestamp when the function with is registered in the map
-                This will be used in the case when we deploy regular cleaning of
-                the connection maps.
+                {
+                    "id": socketId,
+                    "func": func,
+                    "arguments": args,
+                    "timestamp": time.time()
+                }
+
+            * `ID`: SocketID for registering user
+            * `func`: routine to execute when the request from websocket is made
+            * `arguments`: a list of arguments to be provided to func.
+            * `timestamp`: Timestamp when the function with is registered in \
+                the map. This will be used in the case when we deploy regular
+                cleaning of the connection maps.
 
             Each time a user connection is registered an entry is made in this
             mapping list. An entry from the map is deleted when the client
@@ -429,6 +436,7 @@ class _OrigamiWebSocketHandler(WebSocketHandler):
         For example
 
         .. code-block:: python
+
             def my_func(arg1, arg2, message=""):
                 print("Message from websocket is : ", message)
                 print("Arguments are :: ", arg1, arg2)
@@ -462,12 +470,12 @@ class _OrigamiWebSocketHandler(WebSocketHandler):
 
 
         Args:
-            func: function to execute for the message recieved from the
-                websocket.
-            args: list of arguments.
+            func (callable): function to execute for the message recieved from \
+                the websocket.
+            args (list): list of arguments.
 
         Returns:
-            Bool: True if the persistent connection is registered.
+            bool: True if the persistent connection is registered. \
                 False if the connection is not registered.
         """
         if not isinstance(args, list):
@@ -541,12 +549,16 @@ class _OrigamiWebSocketHandler(WebSocketHandler):
         Writes the message to the socket on the basis of message validation.
 
         Args:
-            message: message from the websocket to be validated.
+            message: message from the websocket to be validated. \
                 The format of a valid message is
-                {
-                    "socket-id": "[SocketID]" -> If first time connection opened
-                    "data": "[Data sent from client as a string]"
-                }
+
+                .. code-block
+
+                    {
+                        "socket-id": "[SocketID]" -> If first time connection \
+                            opened
+                        "data": "[Data sent from client as a string]"
+                    }
 
         Returns:
             data from the message or None
@@ -585,21 +597,29 @@ class _OrigamiWebSocketHandler(WebSocketHandler):
 
     def open(self):
         """
-        A new websocket connection is opened
+        A new websocket connection is opened.
         Overridden function from WebSocketHandler
+
+        This method resets the global connection variables.
         """
         self.__reset_connection()
 
     def on_message(self, message):
         """
         Got a messege from the websocket connection.
-        Overridden method from WebSocketHandler
+        Overridden method from WebSocketHandler.
+
+        This method recieves the message from the websocket connection and
+        validates the message. If the message is validated it extracts the
+        data from the message and pass it as an argument to the function
+        registered corresponding to the users socket-id. The returned value
+        from the function is sent back to user as a response.
 
         Args:
-            message: message from the websocket connection
-                This message is what we got from the websocket, first we need to
-                validate it and then extract the required matter from it which
-                will then be used by the registered function.
+            message: message from the websocket connection. \
+                This message is what we got from the websocket, first we need \
+                to validate it and then extract the required matter from it \
+                which will then be used by the registered function.
         """
         data = self._validate_message(message)
         if data:
@@ -630,7 +650,7 @@ class _OrigamiWebSocketHandler(WebSocketHandler):
         self.__reset_connection()
 
 
-class _FunctionServiceHandler(RequestHandler):
+class FunctionServiceHandler(RequestHandler):
     """
     Handles persistent calls to function.
 
@@ -640,6 +660,12 @@ class _FunctionServiceHandler(RequestHandler):
     We are not using python list here since pop operations for them is
     slow as compared to deque. It also acts as a similar iterable to list
     so most of the methods we use with list are available for this too.
+
+    Attributes:
+        MAX_CONN_LIMIT: maximum connections that we can hold.
+
+        functional_service_map: A list of connections maapings with functions \
+            and identifiers.
     """
     MAX_CONN_LIMIT = 32
     functional_service_map = deque(maxlen=MAX_CONN_LIMIT)
@@ -671,6 +697,7 @@ class _FunctionServiceHandler(RequestHandler):
         a response to the user.
 
         .. code-block:: python
+
             from origami_lib.origami import Origami
 
             # VQA model
@@ -703,14 +730,14 @@ class _FunctionServiceHandler(RequestHandler):
 
 
         Args:
-            func (callable): A callable function which will be called when the
+            func (callable): A callable function which will be called when the \
                 user requests the fass resource.
             args (list): A list of arguments to be passed to the handler
 
         Returns:
-            func_id (str): Identifier corresponding to the registered
-                connection, every further request corresponding to this
-                registration should be provided with this id as a query
+            func_id (str): Identifier corresponding to the registered \
+                connection, every further request corresponding to this \
+                registration should be provided with this id as a query \
                 parameter.
         """
         if not isinstance(args, list):
@@ -761,8 +788,8 @@ class _FunctionServiceHandler(RequestHandler):
             self.finish("Need a query parameter along with an identifier")
 
 
-class Origami(OrigamiInputs, OrigamiOutputs, _OrigamiWebSocketHandler,
-              _FunctionServiceHandler):
+class Origami(OrigamiInputs, OrigamiOutputs, OrigamiWebSocketHandler,
+              FunctionServiceHandler):
     """ Origami class to declare the main app
 
     This class initializes the app and provides methods to interact with
@@ -775,7 +802,8 @@ class Origami(OrigamiInputs, OrigamiOutputs, _OrigamiWebSocketHandler,
     To create an Origami app
 
     .. code-block:: python
-        from origami.origami import Origami
+
+        from origami_lib.origami import Origami
 
         app = Origami("vqa")
 
@@ -792,9 +820,8 @@ class Origami(OrigamiInputs, OrigamiOutputs, _OrigamiWebSocketHandler,
 
 
     Attributes:
-        name: Application name.
+        name: Application name for the demo.
         origami_server_base: URL for origami server running.
-
         server: Flask server for origami
         cors: CORS for flask server running
     """
@@ -850,7 +877,8 @@ class Origami(OrigamiInputs, OrigamiOutputs, _OrigamiWebSocketHandler,
         By default we are restricting this to only POST methods.
 
         Args:
-            route: route to be uesd by origami web interface for interaction
+            route: route to be uesd by origami web interface for interaction. \
+                By default the route is /event.
         """
         return self.server.route(
             route, methods=[
@@ -868,14 +896,15 @@ class Origami(OrigamiInputs, OrigamiOutputs, _OrigamiWebSocketHandler,
         this function
 
         .. code-block:: python
-            from origami import Origami
+
+            from origami_lib.origami import Origami
 
             app = Origami("My Model")
             app.run()
 
 
         Raises:
-            OrigamiServerException: Exception when the port we are trying to
+            OrigamiServerException: Exception when the port we are trying to \
                 bind to is already in use.
         """
         try:
@@ -883,8 +912,8 @@ class Origami(OrigamiInputs, OrigamiOutputs, _OrigamiWebSocketHandler,
             http_server = WSGIContainer(self.server)
 
             # Register a web application with websocket at /websocket
-            server = Application([(r'/websocket', _OrigamiWebSocketHandler),
-                                  (r'/fass', _FunctionServiceHandler),
+            server = Application([(r'/websocket', OrigamiWebSocketHandler),
+                                  (r'/fass', FunctionServiceHandler),
                                   (r'.*', FallbackHandler,
                                    dict(fallback=http_server))])
 
