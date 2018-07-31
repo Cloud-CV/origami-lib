@@ -1,3 +1,4 @@
+from collections import deque
 from flask import Flask, request as user_req, jsonify
 from flask_cors import CORS, cross_origin
 import requests
@@ -5,9 +6,10 @@ import re
 import json
 import time
 from tornado.wsgi import WSGIContainer
-from tornado.web import Application, FallbackHandler
+from tornado.web import Application, FallbackHandler, RequestHandler
 from tornado.ioloop import IOLoop
 from tornado.websocket import WebSocketHandler
+import uuid
 
 from . import constants, exceptions, utils
 from .pipeline import OrigamiCache
@@ -628,7 +630,139 @@ class _OrigamiWebSocketHandler(WebSocketHandler):
         self.__reset_connection()
 
 
-class Origami(OrigamiInputs, OrigamiOutputs, _OrigamiWebSocketHandler):
+class _FunctionServiceHandler(RequestHandler):
+    """
+    Handles persistent calls to function.
+
+    The const MAX_CONN_LIMIT here defines the maximum no of
+    simultaneous http connection we support, the default is 32
+
+    We are not using python list here since pop operations for them is
+    slow as compared to deque. It also acts as a similar iterable to list
+    so most of the methods we use with list are available for this too.
+    """
+    MAX_CONN_LIMIT = 32
+    functional_service_map = deque(maxlen=MAX_CONN_LIMIT)
+
+    @classmethod
+    def register_persistent_http_connection(cls, func, args):
+        """
+        Similar to register_persistent_connection method for a websocket
+        handler, with the only difference that it registers http connection
+        which can then be used to respond to user requests on a particular
+        resource /fass in this case.
+
+        How this function work is, each time a user request the root resource
+        a function will be registered for the user with the provided args.
+        Now whenever user wants to access the registered function he only needs
+        to make an HTTP request to /fass resource with the identifier
+        returned by this function.
+
+        So suppose I have a function in which I take an image from the user
+        and preprocess it, then first the user request the root resource with
+        the image. After preprocessing a call to this function is made with the
+        preprocessed data as an argument. This method in turn registers the
+        function provided for future user interaction.
+
+        Now user makes a request to /fass resource with the ID returned from
+        the method. The request is matched with the function registered with
+        the corresponding ID and called with the preprocessed image as the
+        argument we provided earlier. This registered function then returns
+        a response to the user.
+
+        .. code-block:: python
+            from origami_lib.origami import Origami
+
+            # VQA model
+            app = Origami("vqa")
+
+            class VQA:
+                def __init__(self):
+                    pass
+
+            def preprocess_image(img):
+                pass
+
+            def my_func(preprocessed_image, query):
+                print("Query is : {}".format(query))
+                ans = VQA(preprocessed_image, query)
+                return "Ans for query {} is {}".format(query, ans)
+
+
+            @app.listen()
+            @app.origami_api
+            def vqa_handler():
+                img_arr = app.get_image_array()
+                preprocessed_image = preprocess_image(img_arr[0])
+                func_id = app.register_persistent_http_connection(
+                    question_handler,
+                    [preprocessed_image])
+                app.send_text_array([func_id])
+
+            app.run()
+
+
+        Args:
+            func (callable): A callable function which will be called when the
+                user requests the fass resource.
+            args (list): A list of arguments to be passed to the handler
+
+        Returns:
+            func_id (str): Identifier corresponding to the registered
+                connection, every further request corresponding to this
+                registration should be provided with this id as a query
+                parameter.
+        """
+        if not isinstance(args, list):
+            raise exceptions.MismatchTypeException(
+                "register_persistent_connection only accepts \
+                arguments as a list")
+        # Only works for python2 and python3.2+, check if the function is
+        # callable
+        if not callable(func):
+            raise exceptions.MismatchTypeException(
+                "Non callable argument for function")
+
+        func_id = uuid.uuid4().hex
+        cls.functional_service_map.append({
+            "id": func_id,
+            "func": func,
+            "arguments": args,
+            "timestamp": time.time()
+        })
+        return func_id
+
+    def get(self):
+        query = self.get_query_argument("query", None, True)
+        func_id = self.get_query_argument("id", None, True)
+        if query and func_id:
+            try:
+                connection = next(x for x in self.functional_service_map
+                                  if x["id"] == func_id)
+                out_msg = connection["func"](
+                    *connection["arguments"], query=query)
+                try:
+                    # Send the out_msg returned from the function.
+                    if isinstance(out_msg, dict):
+                        out_msg = json.dumps(out_msg)
+                    elif not utils.check_if_string(out_msg):
+                        print("Invaid return type, required either a dict or\
+                            string")
+                    self.write(out_msg)
+                except Exception:
+                    pass
+            except StopIteration:
+                self.set_status(500)
+                self.finish("No valid identifier provided : {}".format(func_id))
+                return
+
+        else:
+            self.set_status(500)
+            self.finish("Need a query parameter along with an identifier")
+
+
+class Origami(OrigamiInputs, OrigamiOutputs, _OrigamiWebSocketHandler,
+              _FunctionServiceHandler):
     """ Origami class to declare the main app
 
     This class initializes the app and provides methods to interact with
@@ -750,6 +884,7 @@ class Origami(OrigamiInputs, OrigamiOutputs, _OrigamiWebSocketHandler):
 
             # Register a web application with websocket at /websocket
             server = Application([(r'/websocket', _OrigamiWebSocketHandler),
+                                  (r'/fass', _FunctionServiceHandler),
                                   (r'.*', FallbackHandler,
                                    dict(fallback=http_server))])
 

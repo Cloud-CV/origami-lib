@@ -5,8 +5,9 @@ class OrigamiException(Exception):
     STATUS_CODE = 1
 
     def __init__(self, message=''):
-        super().__init__("OrigamiException[{0}] => {1}".format(
-            self.STATUS_CODE, message))
+        super(OrigamiException,
+              self).__init__("OrigamiException[{0}] => {1}".format(
+                  self.STATUS_CODE, message))
 
 
 class MismatchTypeException(OrigamiException):
