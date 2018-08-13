@@ -65,6 +65,7 @@ class OrigamiRequester(object):
 
         # Request the origami server
         try:
+            payload = json.dumps(payload)
             resp = requests.post(
                 target_url,
                 headers=constants.REQUESTS_JSON_HEADERS,
@@ -170,8 +171,9 @@ class OrigamiInputs(object):
 
         if mode == constants.INPUT_IMAGE_ARRAY_FILEPATH_MODE:
             cache = OrigamiCache()
-            cache.cache_image_file_array(image_inputs)
-            return cache
+            cache.save_image_file_array_to_cache(image_inputs)
+            image_path_arr = cache.load_image_file_paths_from_cache()
+            return image_path_arr
 
         elif mode == constants.INPUT_IMAGE_ARRAY_NPARRAY_MODE:
             return utils.get_image_as_numpy_arr(image_inputs)
@@ -587,12 +589,11 @@ class OrigamiWebSocketHandler(WebSocketHandler):
             if "data" in message and utils.check_if_string(message["data"]):
                 return message["data"]
 
-        except json.decoder.JSONDecodeError:
-            self.write_message("Could not decode JSON data sent.")
         except StopIteration:
             self.write_message("Could not find socket-id match")
+        except Exception:
+            self.write_message("Input provided is malformed")
 
-        self.close()
         return None
 
     def open(self):

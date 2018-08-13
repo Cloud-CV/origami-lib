@@ -207,6 +207,8 @@ class OrigamiCache(object):
         image_blobs_hash = []
         image_cache_dir = os.path.join(self.cache_dir,
                                        constants.IMAGE_BLOBS_DIR)
+        if not os.path.exists(image_cache_dir):
+            os.makedirs(image_cache_dir)
         try:
             for image_object in image_objects_arr:
                 image_object.seek(0)
@@ -214,7 +216,7 @@ class OrigamiCache(object):
 
                 image_blobs_hash.append(blob_hash)
                 image_blob_path = os.path.join(image_cache_dir, blob_hash)
-                with open(image_blob_path, "wb") as file:
+                with open(image_blob_path, "w+b") as file:
                     image_object.seek(0)
                     file.write(image_object.read())
                     image_object.seek(0)
@@ -254,7 +256,7 @@ class OrigamiCache(object):
         Gives the list of image blobs paths from the cache.
 
         Returns:
-            image_file_paths: Image file paths stored in the cache.
+            image_file_paths: Image file paths stored in the cache as a list.
         """
         image_cache_file_path = os.path.join(self.cache_dir,
                                              constants.IMAGE_CACHE_FILE)
@@ -264,7 +266,7 @@ class OrigamiCache(object):
         image_file_paths = []
         for blob_hash in blob_hash_list:
             image_file_paths.append(
-                os.path.join(self.cache_cache_dir, constants.IMAGE_BLOBS_DIR,
+                os.path.join(self.cache_dir, constants.IMAGE_BLOBS_DIR,
                              blob_hash))
 
         return image_file_paths
