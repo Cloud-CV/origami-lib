@@ -12,7 +12,7 @@ $ pip install --editable .
 ## Development
 
 ```sh
-$ pip install dev-requirements.txt
+$ pip install -r dev-requirements.txt
 ```
 
 ## Documentation
